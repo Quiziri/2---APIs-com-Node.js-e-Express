@@ -3,15 +3,15 @@ import { autores, livros } from "../models/index.js";
 
 class LivroController {
 
-  static listarLivros = async (req, res) => {
+  static listarLivros = async (req, res, next) => {
     try {
-      const livrosResultado = await livros.find()
-        .populate("autor")
-        .exec();
+      const buscaLivros = livros.find();
 
-      res.status(200).json(livrosResultado);
+      req.resultado = buscaLivros;
+
+      next();
     } catch (erro) {
-      res.status(500).json({ message: "Erro interno no servidor." });
+      next(erro);
     }
   };
 
@@ -82,8 +82,14 @@ class LivroController {
       const busca = await processaBusca(req.query);
 
       if(busca !== null) {
-        const livrosResultado = await livros.find(busca).populate("autor");
-        res.status(200).send(livrosResultado);
+        const livrosResultado = await livros
+          .find(busca)
+          .populate("autor");
+
+
+        req.resultado = livrosResultado;
+
+        next();
       } else {
         res.status(200).send([]);
       }
